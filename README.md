@@ -8,10 +8,12 @@ Trixie 64-bit, SunFounder 3.5-inch 480×320 IPS SPI resistive touchscreen**
 (MHS35IPS / ST7796U + XPT2046). Physical compatibility and throughput still need
 testing on your Pi; see [RESULTS.md](RESULTS.md).
 
-The Pi boots directly into a native Wi-Fi selection screen. A dedicated systemd
+The Pi boots directly into a native PIN lock screen. Unlocking opens **Home**, with
+**Lock**, **Status** and **Wi-Fi** buttons. A dedicated systemd
 service starts Xorg and an unprivileged Python/Tk app; there is no desktop login
 manager, shell autologin, Chromium kiosk, or Linux login required on the display.
-Linux, NetworkManager and the official Tailscale daemon handle networking.
+The touchscreen PIN is configured privately during installation. Linux,
+NetworkManager and the official Tailscale daemon handle networking.
 
 **ts-redir management stays on `tailscale0`, TCP 8800.** Open its Tailscale IP or
 full MagicDNS name from a device allowed by your tailnet policy. There is no additional web account
@@ -24,8 +26,10 @@ Actual 480×320 captures of the native app using **invented networks and URLs**.
 These are software previews, not photographs of the physical display. The
 enrollment QR below is deliberately fake.
 
-| Choose Wi-Fi | Touch keyboard |
+| Home | PIN lock |
 | --- | --- |
+| ![Neon Home screen with Lock, Status and Wi-Fi](artifacts/home.png) | ![Masked synthetic PIN and numeric touchscreen keypad](artifacts/lock-pin.png) |
+| **Choose Wi-Fi** | **Touch keyboard** |
 | ![Dark neon Wi-Fi picker with three synthetic networks](artifacts/wifi.png) | ![On-screen keyboard with a masked synthetic password](artifacts/password.png) |
 | **Connection status and management QR** | **Tailscale enrollment** |
 | ![Status screen with synthetic tailnet name, IP and browser QR](artifacts/status.png) | ![Tailscale setup with a deliberately fake enrollment QR](artifacts/enrollment.png) |
@@ -36,7 +40,7 @@ See [all screenshot states and how to regenerate them](artifacts/README.md).
 
 `scripts/install.sh` is the single installation entry point. Every fresh install
 includes the first-boot fixes, dark neon theme, app-only display and keyboard
-protections, protected Wi-Fi broker, and tailnet-only ts-redir management. No
+protections, PIN lock and Home screen, protected Wi-Fi broker, and tailnet-only ts-redir management. No
 separate repair or theme-update scripts are needed. Screen blanking is not enabled.
 
 1. Flash **Raspberry Pi OS Trixie 64-bit**. Lite is the intended minimal setup;
@@ -59,6 +63,12 @@ separate repair or theme-update scripts are needed. Screen blanking is not enabl
    sudo reboot
    ```
 
+   The installer prompts twice for a **6–12 digit touchscreen PIN**, with input
+   hidden. There is no default production PIN. Use an interactive SSH terminal
+   (`ssh -t` when executing the install as a remote command); do not put the PIN
+   in command arguments, environment variables, chat or scripts. Reinstalling
+   preserves an existing PIN unless you add `--reset-pin`.
+
    Replace `US` with your actual two-letter Wi-Fi regulatory country. Installation
    needs internet access for signed OS packages, Tailscale and the checksum-pinned
    SunFounder overlay. The overlay is downloaded for local installation and is
@@ -75,8 +85,9 @@ separate repair or theme-update scripts are needed. Screen blanking is not enabl
 
 ## First boot and use
 
-1. **Choose Wi-Fi** opens on every boot, including when a saved connection has
-   already connected. Select a network, enter its password using the touch
+1. Enter the PIN on **Screen locked**, then tap **Unlock**. Home provides exactly
+   three actions: **Lock**, **Status** and **Wi-Fi**. Status and the Wi-Fi picker
+   each have a **Home** button. Choose **Wi-Fi**, select a network, enter its password using the touch
    keyboard, and tap **Connect**. Hidden networks and open networks are supported.
    WPA2 Personal and WPA3 Personal are supported; enterprise, captive portal and
    legacy Wi-Fi require separate setup. The supplied stylus helps with keyboard
@@ -129,6 +140,15 @@ people/devices that administer this Pi. Anyone permitted to access its TCP 8800
 can manage redirects. LAN clients can use any redirect you expose on their
 interface; this does not authenticate individual LAN clients.
 
+**Lock** immediately hides network details, QR codes and entered credentials, and
+revokes the local broker session. Startup and display/broker restarts require the
+PIN again. Wrong attempts trigger an increasing cooldown, up to 60 seconds, with
+attempt state retained across restarts. Partial PIN input clears after 30 seconds
+of inactivity. Locking is otherwise manual: there is no automatic idle lock or
+screen blanking. Wi-Fi, Tailscale, existing redirects and tailnet web management
+continue to operate while the touchscreen is locked. The PIN does not replace
+Tailscale access policy or the administrator's Linux password.
+
 See Tailscale's [MagicDNS documentation](https://tailscale.com/docs/features/magicdns)
 for naming and client DNS configuration. This integration does not rename the Pi,
 enable MagicDNS in the admin console, or change tailnet access policy.
@@ -147,6 +167,19 @@ code and removes the retired patch entry points; it is not a live-update or
 automatic rollback mechanism. Keep the previous bundle or an SD image for a
 version rollback. A previously recovered installation requires archiving its
 old recovery backup before installing again, as reported by the installer.
+
+To choose a new PIN while reinstalling, add `--reset-pin` to the normal install
+command. To recover a forgotten PIN without reinstalling, use authenticated SSH:
+
+```sh
+sudo env PYTHONPATH=/opt/tailbridge python3 -m tailbridge.lock --reset
+sudo systemctl restart tailbridge-network tailbridge-display
+```
+
+Only an administrator can reset it. The protected PIN hash and attempt state live
+in `/var/lib/tailbridge-lock/`; never include that directory in a shared bundle or
+backup. Recovery retains it, like other private device state. Root access or SD-card
+modification can bypass a software PIN lock; it does not encrypt stored data.
 
 SSH is kept available. Ethernet remains an independent recovery route. The
 installer saves original boot configuration, changed files, boot target and the
@@ -180,13 +213,32 @@ full rollback. Do not overwrite or share NetworkManager or Tailscale state files
 
 The ready-to-copy artifact is `build/tailbridge-pi-arm64.tar.gz`. Rebuild on Linux
 with Python 3, Git, curl, a C compiler for Go's race detector, and Go with automatic
-toolchain downloads enabled:
+toolchain downloads enabled. Install the Python test dependencies on the **build
+machine**, even when cross-compiling for the Pi. On Debian/Ubuntu:
+
+```sh
+sudo apt-get install build-essential git curl ca-certificates python3-tk python3-dbus python3-qrcode
+```
+
+Then build and optionally run the synthetic preview:
 
 ```sh
 ./scripts/build.sh
 python3 -m unittest discover -s tests -v
 python3 -m tailbridge.ui --demo --windowed
 ```
+
+The build checks Tk and D-Bus imports before downloading or compiling. If you see
+`No module named dbus`, the selected Python may not see the distribution packages.
+Use `TAILBRIDGE_PYTHON=/usr/bin/python3 ./scripts/build.sh` to select the system
+interpreter explicitly. For a development venv, create it with
+`/usr/bin/python3 -m venv --system-site-packages .venv` so it can use those packages.
+An isolated venv or a different Python installation does not gain access merely
+by installing `python3-dbus` with apt.
+
+The synthetic demo PIN is `123456`; it is accepted only by `--demo`, which never
+contacts the privileged broker or real networks. A production installation must
+configure its own PIN.
 
 The build pins ts-redir, applies the reviewed integration in its own disposable
 cache, tests it with the Go race detector, and cross-compiles a static arm64 binary.
@@ -195,8 +247,7 @@ publishing it. These include temporary-root installation, repeat installation an
 configuration recovery; an older build cannot retain retired scripts in the package.
 Embedded Pico CSS is hash-checked at build time, and the vendor overlay at install
 time. Neither this build nor
-demo mode changes host networking. Python test dependencies on Debian are
-`python3-tk python3-dbus python3-qrcode`; UI tests also need an X display.
+demo mode changes host networking. UI tests also need an X display.
 For screenshot-level QR verification, install Pillow and zxing-cpp in a development
 virtual environment alongside qrcode, then run
 `.venv/bin/python tests/ui_smoke.py --decode-qr`. This decodes only synthetic

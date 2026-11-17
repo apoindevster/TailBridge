@@ -2,9 +2,54 @@
 
 `systemd → Xorg/fbdev → unprivileged Tk UI → protected Unix socket → root broker
 → NetworkManager D-Bus` is the local configuration path. The broker accepts only
-status, scan, join and Tailscale enrollment operations, authenticates the peer UID
+lock, PIN verification, status, scan, join and Tailscale enrollment operations, authenticates the peer UID
 using SO_PEERCRED, and does not offer a shell or arbitrary command endpoint.
 Passwords travel as D-Bus fields, never shell commands or process arguments.
+
+## Touchscreen PIN boundary
+
+The root broker requires a valid in-memory session for every status, scan, join
+and enrollment request. Only lock metadata, locking and PIN verification are
+available before authentication, still restricted by the Unix socket's peer UID.
+The UI starts locked and explicitly revokes any older broker session before it
+allows unlocking. Manual Lock immediately clears input, selected networks, status
+and QR data; a generation check discards replies from earlier requests. If a
+request is in flight, broker revocation completes before another unlock is enabled.
+A broker restart or changed PIN invalidates existing sessions, and the next UI
+request returns to the lock screen. Sessions are random, never persisted or logged.
+
+The installer requires private interactive input for a 6–12 digit ASCII PIN and
+confirmation. It rejects noninteractive input and getpass's echo fallback. No PIN
+flag, environment variable or production default exists. Existing PINs are kept
+unless an authenticated administrator explicitly resets them. The demo's public
+PIN operates only against the synthetic in-process backend.
+
+`/var/lib/tailbridge-lock` is root-owned, mode 0700. Its `pin.json` is mode 0600
+and holds a random 128-bit salt and PBKDF2-HMAC-SHA256 result (600,000 iterations),
+never the PIN. Comparisons use `hmac.compare_digest`. Unsafe ownership, permissions,
+symlinks, malformed/missing configuration or persistence failure do not unlock.
+The broker's systemd StateDirectory permits writes only to this protected state
+within its existing filesystem sandbox. Configuring a PIN and verifying attempts
+use a protected file lock so an in-flight attempt cannot overwrite an admin reset.
+
+Attempts are atomically persisted **before** verification; failures wait
+1, 2, 4, 8, 16, 32 and then 60 seconds per attempt. A correct PIN cannot bypass
+an active wait. The attempt count survives UI/broker restarts and reboots.
+Wall time carries the remaining wait across a restart, bounded to 60 seconds
+and then measured with monotonic time so clock corrections cannot strand the UI.
+This relies on the Pi's system clock for elapsed time while shut down; root can
+reset the PIN or alter the clock/state and is outside this boundary.
+
+Locking controls touchscreen configuration only. It does not stop Wi-Fi/Tailscale,
+change tailnet grants, disable redirects, encrypt the SD card or revoke a browser's
+tailnet access. No automatic idle lock is configured; abandoned PIN input clears
+after 30 seconds. Physical access to boot media, root compromise, or compromise of
+the unlocked UI process can bypass a software lock. Python string clearing is not
+cryptographic memory erasure. PIN setup/verification latency and physical keypad
+usability still require testing on the Pi.
+
+References: [Python password derivation](https://docs.python.org/3/library/hashlib.html#hashlib.pbkdf2_hmac)
+and [OWASP password storage guidance](https://cheatsheetseries.owasp.org/cheatsheets/Password_Storage_Cheat_Sheet.html).
 
 The display service owns tty1 and Xorg runs with the privileges required for the
 framebuffer and input devices. Only its Tk child runs as `tailbridge`, a dedicated

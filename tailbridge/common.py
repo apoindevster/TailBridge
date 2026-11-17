@@ -15,6 +15,10 @@ class UserError(Exception):
     """A deliberately safe message suitable for display without raw diagnostics."""
 
 
+class LockedError(UserError):
+    """The local kiosk session must authenticate again."""
+
+
 def read_message(stream):
     data = stream.readline(MAX_MESSAGE + 1)
     if len(data) > MAX_MESSAGE or not data.endswith(b"\n"):
@@ -37,6 +41,8 @@ def request(command, path=SOCKET, **kwargs):
             stream.flush()
             answer = read_message(stream)
     if not answer.get("ok"):
+        if answer.get('code') == 'locked':
+            raise LockedError('Screen locked. Enter your PIN.')
         raise UserError(answer.get("error", "Service unavailable."))
     return answer["data"]
 

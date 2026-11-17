@@ -3,8 +3,8 @@
 set -euo pipefail
 project=$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/.." && pwd)
 if [[ ${EUID} -ne 0 ]]; then echo 'Run with sudo.' >&2; exit 1; fi
-if [[ $# -ne 2 || $1 != --country || ! $2 =~ ^[A-Z]{2}$ ]]; then
-    echo 'Usage: sudo ./scripts/install.sh --country YOUR_TWO_LETTER_COUNTRY' >&2; exit 1
+if [[ $# -lt 2 || $# -gt 3 || $1 != --country || ! $2 =~ ^[A-Z]{2}$ || ( $# -eq 3 && $3 != --reset-pin ) ]]; then
+    echo 'Usage: sudo ./scripts/install.sh --country YOUR_TWO_LETTER_COUNTRY [--reset-pin]' >&2; exit 1
 fi
 country=$2
 if [[ $(uname -m) != aarch64 ]] || ! grep -aq 'Raspberry Pi 4' /proc/device-tree/model; then
@@ -22,6 +22,9 @@ fi
 # Shared with the post-boot audit. Reject autologin/custom console commands and
 # an unsafe existing UI account before installing packages or changing files.
 python3 "$project/scripts/verify_kiosk.py" --preflight
+pin_options=()
+if [[ ${3:-} == --reset-pin ]]; then pin_options+=(--reset); fi
+PYTHONPATH="$project" python3 -m tailbridge.lock "${pin_options[@]}"
 install -d -m 0700 /var/lib/tailbridge/install-backup
 if [[ ! -f /var/lib/tailbridge/install-backup/services.json ]]; then
     python3 - <<'PY'
@@ -70,6 +73,6 @@ systemctl set-default multi-user.target
 systemctl mask getty@tty1.service
 systemctl enable tailbridge-network tailbridge-display tailbridge-firewall tailbridge-redir
 printf '%s\n' 'Installed. No reboot was forced.' \
-    'Run sudo reboot when ready. The touchscreen will open Wi-Fi setup.' \
+    'Run sudo reboot when ready. Enter your touchscreen PIN to open Home.' \
     'After reboot: sudo python3 /opt/tailbridge/scripts/verify_kiosk.py' \
     'Recovery: sudo /opt/tailbridge/scripts/recover.sh'

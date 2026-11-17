@@ -20,6 +20,10 @@ python3 scripts/check_publication.py
 ```
 
 The build runs the Go race tests and Python suite against a fresh arm64 bundle.
+It checks Tk and D-Bus imports before downloading or compiling. Set
+`TAILBRIDGE_PYTHON=/usr/bin/python3` when invoking `scripts/build.sh` to use the
+distribution interpreter explicitly; an isolated venv cannot import apt's D-Bus
+binding. Use `--system-site-packages` when creating a development venv.
 Installer tests use a temporary filesystem and a synthetic overlay; they do not
 change the host's services, display, Wi-Fi or firewall. The UI smoke test uses
 only the application's synthetic window, checks layout and decodes QR pixels.

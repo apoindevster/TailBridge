@@ -9,7 +9,20 @@ revision. Do not paste passwords, Tailscale state, enrollment URLs or auth keys.
 Use a disposable test service on an authorized tailnet peer, not sensitive services.
 
 - [ ] Install on clean Raspberry Pi OS Trixie arm64 using Ethernet; save an SD image.
-- [ ] Cold boot without a keyboard: Wi-Fi picker appears with no login prompt.
+- [ ] Install/update in an interactive SSH terminal: hidden PIN prompts match,
+  upgrades retain the PIN and explicit reset replaces it without exposing it.
+- [ ] Cold boot without a keyboard: PIN lock appears without a Linux login prompt;
+  unlocking opens Home with Lock, Status and Wi-Fi. Check numeric keypad touch
+  targets, leading zeroes, deletion, masking and 30-second partial-input clearing.
+- [ ] Home routes to Status/Wi-Fi and both return Home. Manual Lock hides details
+  and QR codes immediately; no keyboard/back navigation bypasses authentication.
+- [ ] Wrong PINs enforce the displayed cooldown across display/broker restarts
+  and reboot. Correct PIN succeeds after cooldown. Missing/unreadable PIN state
+  fails closed. Recover a forgotten PIN through authenticated SSH; unsafe state
+  requires administrator repair. Measure verification latency on the Pi without
+  recording the PIN, salt or derived hash.
+- [ ] Wi-Fi, Tailscale and redirects continue while locked; ts-redir's existing
+  tailnet authentication remains unchanged. No automatic idle lock is expected.
 - [ ] Display fills 480×320; all four touch corners and every keyboard row align.
 - [ ] Confirm dark neon colors and readable text on the actual SPI display.
 - [ ] With a physical keyboard, Alt-F4, Ctrl-Alt-F2, Ctrl-Alt-Backspace,

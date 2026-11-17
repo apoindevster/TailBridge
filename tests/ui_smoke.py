@@ -18,7 +18,17 @@ class Fixture(Demo):
     fail = False
     fail_status = False
     join_gate = None
+    status_gate = None
+    configured = True
+    fail_lock = False
     def __call__(self, command, **data):
+        if command in ('lock', 'lock_status') and self.fail_lock:
+            raise UserError('Synthetic unavailable service')
+        if command in ('lock', 'lock_status') and not self.configured:
+            self.session = ''
+            return {'configured': False, 'retry_after': 0}
+        if command == 'status' and self.status_gate is not None:
+            assert self.status_gate.wait(10), 'Synthetic status was not released'
         if command == 'status' and self.fail_status:
             raise UserError('Status unavailable. Try again.')
         if command == 'connect' and self.join_gate is not None:
@@ -72,6 +82,27 @@ def capture(name, qr_url=None):
 
 try:
     settle()
+    assert app.page == 'locked' and not app.session and not app.status and not app.networks
+    app.navigate('home')
+    assert app.page == 'locked', 'navigation must not bypass the PIN'
+    capture('locked')
+    for char in '000000': app.key(char)
+    app.unlock_pin()
+    settle()
+    assert app.page == 'locked' and not app.value and not app.session
+    capture('lock-wait')
+    app.retry_deadline = 0  # Synthetic clock; real persistent throttling has separate tests.
+    app.touch()
+    for char in '123456': app.key(char)
+    assert '123456' not in app.field.cget('text')
+    capture('lock-pin')
+    app.unlock_pin()
+    settle()
+    assert app.page == 'home'
+    assert [w.cget('text') for w in root.winfo_children() if isinstance(w, tk.Button)] == ['Lock', 'Status', 'Wi-Fi']
+    capture('home')
+    app.navigate('networks')
+    settle()
     # The real kiosk refuses a window-manager close request. The same root stays
     # alive, including its callbacks, before returning to synthetic preview mode.
     app.demo = False
@@ -107,6 +138,7 @@ try:
     assert app.page == 'password' and not app.value and app.notice
     capture('failed-join')
     app.navigate('networks')
+    settle()
     app.select(app.networks[1])
     app.join()
     settle()
@@ -165,7 +197,46 @@ try:
     app.last_touch = 0
     app.pump()
     assert app.page == 'networks' and not app.value
-    print('PASS: native 480x320 UI flow, 14 captures, management QR and fallback, bounds, masking, error recovery, idle clearing' +
+    settle()
+    app.navigate('home')
+    fixture.status_gate = threading.Event()
+    app.call('status', app.updated)
+    app.lock_screen()
+    assert app.page == 'locked' and not app.value and not app.session and not app.status and not app.networks
+    fixture.status_gate.set()
+    settle()
+    fixture.status_gate = None
+    assert not app.pending_lock and not fixture.session and not app.status
+    # A partial PIN expires, and Escape only clears the field.
+    app.touch()
+    for char in '123': app.key(char)
+    app.last_touch = 0
+    app.pump()
+    assert not app.value and app.page == 'locked'
+    app.physical_key(type('Key', (), {'keysym': 'Escape', 'char': ''})())
+    assert app.page == 'locked'
+    fixture.configured = False
+    app.call('lock_status', app.lock_state)
+    settle()
+    assert app.unlock_button.cget('state') == 'disabled'
+    capture('lock-setup')
+    fixture.fail_lock = True
+    app.call('lock_status', app.lock_state)
+    settle()
+    capture('lock-error')
+    fixture.fail_lock, fixture.configured = False, True
+    app.call('lock_status', app.lock_state)
+    settle()
+    app.touch()
+    for char in '123456': app.key(char)
+    app.unlock_pin()
+    settle()
+    # Broker restart revokes the session and forces the UI back to the lock.
+    fixture.session = ''
+    app.call('status', app.updated)
+    settle()
+    assert app.page == 'locked' and not app.session and not app.status
+    print('PASS: native 480x320 UI flow, 20 captures, PIN/home/lock states and revocation, management QR and fallback, bounds, masking, error recovery, idle clearing' +
           ('; all captured QR payloads decoded correctly' if args.decode_qr else ''))
 finally:
     app.close()

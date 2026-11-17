@@ -347,11 +347,17 @@
         "artifacts/status-no-qr.png",
         "artifacts/status-error.png",
         "artifacts/status-offline.png",
-        "artifacts/enrollment.png"
+        "artifacts/enrollment.png",
+        "artifacts/home.png",
+        "artifacts/locked.png",
+        "artifacts/lock-pin.png",
+        "artifacts/lock-wait.png",
+        "artifacts/lock-setup.png",
+        "artifacts/lock-error.png"
       ],
       "type": "Actual native Tk renders with synthetic data",
-      "verified": "Fourteen native captures pass widget bounds at 480 × 320 and buttons at least 42 px high; exact management and enrollment QR payloads decoded from captured pixels; status name/IP fallback, missing QR library, error and unenrolled states checked without clipping; documented text contrast at least 4.5:1 and resting control outlines at least 3:1.",
-      "pending": "Physical Pi touchscreen interaction, display readability and phone-camera QR scanning."
+      "verified": "Twenty native captures pass widget bounds at 480 × 320 and buttons at least 42 px high; exact management and enrollment QR payloads decoded from captured pixels; status name/IP fallback, missing QR library, error and unenrolled states checked without clipping; documented text contrast at least 4.5:1 and resting control outlines at least 3:1. Startup PIN gate, Home navigation, masked PIN entry, cooldown, missing configuration and service recovery states checked; locking clears private state and discards stale callbacks.",
+      "pending": "Physical Pi touchscreen interaction, PIN verification latency, display readability and phone-camera QR scanning."
     }
   },
   "components": [
@@ -399,8 +405,8 @@
       "name": "Screen navigation",
       "kind": "nav",
       "refersTo": "button-secondary",
-      "description": "Upper-right navigation between network list and status; no persistent navigation bar. HTML/CSS is a design-panel visual translation; native Tk behavior is authoritative.",
-      "html": "<button class=\"ds-navigation\" type=\"button\">Status</button>",
+      "description": "Home offers Lock, Status and Wi-Fi after PIN unlock. Upper-right Home buttons return from the network list and status; no persistent navigation bar. HTML/CSS is a design-panel visual translation; native Tk behavior is authoritative.",
+      "html": "<button class=\"ds-navigation\" type=\"button\">Home</button>",
       "css": ".ds-navigation { width: 104px; height: 42px; background: #191E36; color: #EDF4FF; font: 400 18px \"DejaVu Sans\", sans-serif; border: 0; border-radius: 0; padding: 0; outline: 1px solid #647496; outline-offset: -1px; } .ds-navigation:hover:not(:disabled), .ds-navigation:active:not(:disabled) { background: #2A3553; color: #54E7F4; } .ds-navigation:focus-visible { outline-color: #54E7F4; } .ds-navigation:disabled { background: #191E36; color: #ADBBD5; outline-color: #647496; }"
     },
     {

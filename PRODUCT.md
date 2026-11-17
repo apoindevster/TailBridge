@@ -6,7 +6,10 @@ display into a Wi-Fi-configurable entry point to selected tailnet services.
 
 ## Confirmed scope
 - Raspberry Pi OS Trixie, 64-bit, confirmed by the user.
-- Boot directly to Wi-Fi configuration without a Linux login manager.
+- Boot directly to the touchscreen PIN lock without a Linux login manager;
+  unlocking opens Home with Lock, Status and Wi-Fi buttons.
+- Configure the PIN privately during installation; preserve it on upgrades and
+  allow an authenticated administrator to reset it. Retain the dark neon theme.
 - Landscape 480 × 320 touch interface with an on-screen keyboard.
 - Use apoindevster/ts-redir for browser-managed redirections from the Pi's IP.
 - Open management by the Pi's Tailscale IP or full tailnet name on port 8800;
@@ -26,8 +29,8 @@ official Tailscale service; pinned ts-redir bound only to tailscale0. The user
 explicitly chose Tailscale access policy as the browser authentication layer;
 there is no LAN-facing web gateway and no separate web password.
 These are implementation decisions, not additional user-confirmed requirements.
-Keep the established appliance flow: network list, password entry, connection
-feedback and status. This is an operating interface, not a desktop workspace.
+Keep the established appliance flow behind the PIN: Home, network list, password
+entry, connection feedback and status. This is an operating interface, not a desktop workspace.
 
 ## Security and recovery
 Keep credentials out of logs and process arguments. Restrict privileged local

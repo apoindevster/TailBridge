@@ -2,6 +2,31 @@
 set -euo pipefail
 project=$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/.." && pwd)
 cd "$project"
+python_bin=${TAILBRIDGE_PYTHON:-python3}
+# Check the same interpreter used below before downloads or compilation. A venv
+# without system-site-packages cannot see the distribution's D-Bus binding.
+python_bin=$("$python_bin" - <<'PY'
+import importlib
+import sys
+
+if sys.version_info < (3, 11):
+    raise SystemExit('TailBridge builds require Python 3.11 or newer.')
+missing = []
+for module, package in (('dbus', 'python3-dbus'), ('tkinter', 'python3-tk')):
+    try:
+        importlib.import_module(module)
+    except ImportError:
+        missing.append((module, package))
+if missing:
+    print('Build dependencies unavailable for ' + sys.executable, file=sys.stderr)
+    print('Missing modules: ' + ', '.join(module for module, _ in missing), file=sys.stderr)
+    print('On Debian/Ubuntu: sudo apt-get install ' + ' '.join(package for _, package in missing), file=sys.stderr)
+    print('Use the distribution Python: TAILBRIDGE_PYTHON=/usr/bin/python3 ./scripts/build.sh', file=sys.stderr)
+    print('For a venv, create it with /usr/bin/python3 -m venv --system-site-packages VENV_PATH.', file=sys.stderr)
+    raise SystemExit(1)
+print(sys.executable)
+PY
+)
 mkdir -p .cache build
 revision=935fda9def785f49dc1e5435388c6c344b8e68a1
 source_dir="$project/.cache/ts-redir-build"
@@ -15,7 +40,7 @@ git -C "$source_dir" clean -fdq
 curl --fail --silent --show-error --location \
     https://cdn.jsdelivr.net/npm/@picocss/pico@2.0.0-alpha1/css/pico.min.css -o .cache/pico.min.css
 echo '4c4befaa02d5ccf8756c406283945591a623d023c6843ae734b1aa8633c83958  .cache/pico.min.css' | sha256sum --check --status
-python3 scripts/prepare_ts_redir.py "$source_dir"
+"$python_bin" scripts/prepare_ts_redir.py "$source_dir"
 (cd "$source_dir" && GOTOOLCHAIN=auto go test -race ./...)
 staging=$(mktemp -d "$project/build/.bundle.XXXXXX")
 trap 'rm -rf -- "$staging"' EXIT
@@ -35,14 +60,14 @@ cp .impeccable/design.json "$bundle/.impeccable/"
 if [[ -f RESULTS.md ]]; then cp RESULTS.md "$bundle/"; fi
 cp "$source_dir/LICENSE" "$bundle/licenses/ts-redir-MIT.txt"
 cp docs/THIRD-PARTY.md "$bundle/licenses/NOTICE.md"
-(cd "$source_dir" && python3 "$project/scripts/collect_licenses.py" "$bundle/licenses")
+(cd "$source_dir" && "$python_bin" "$project/scripts/collect_licenses.py" "$bundle/licenses")
 chmod +x "$bundle"/scripts/*.sh
 # Include the newly added integration files in the reviewable patch.
 git -C "$source_dir" add -N internal/web/guard*.go internal/firewall/persistent*.go internal/firewall/kernel_test.go internal/web/templates/pico.min.css
 git -C "$source_dir" diff --stat > build/ts-redir-integration-stat.txt
 git -C "$source_dir" diff > build/ts-redir-integration.patch
 # Validate the actual fresh bundle, never an older directory from a prior build.
-TAILBRIDGE_BUNDLE="$bundle" python3 -m unittest discover -s tests -v
+TAILBRIDGE_BUNDLE="$bundle" "$python_bin" -m unittest discover -s tests -v
 find "$bundle" -type d -name __pycache__ -prune -exec rm -rf '{}' +
 # Remove local account names/UIDs and timestamps from downloadable archives.
 tar --sort=name --owner=0 --group=0 --numeric-owner --mtime="@${SOURCE_DATE_EPOCH:-0}" \

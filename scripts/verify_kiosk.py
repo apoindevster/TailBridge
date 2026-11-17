@@ -7,6 +7,7 @@ from pathlib import Path
 import pwd
 import re
 import subprocess
+import sys
 
 
 def output(*args):
@@ -65,6 +66,9 @@ def preflight():
 
 def verify():
     require(os.geteuid() == 0, 'Run this audit with sudo.')
+    sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+    from tailbridge.lock import PinStore
+    require(PinStore().read() is not None, 'Touchscreen PIN is not configured')
     check_logins()
     for unit in ('tailbridge-display', 'tailbridge-network', 'sshd'):
         require(output('systemctl', 'is-active', unit) == 'active', unit + ' is not active')
@@ -98,7 +102,7 @@ def verify():
     config = Path('/run/tailbridge-display/xorg.conf').read_text()
     require('Option "DontVTSwitch" "true"' in config and 'Option "DontZap" "true"' in config, 'X keyboard escapes are enabled')
     require(output('systemctl', 'show', '--property=Restart', '--value', 'tailbridge-display') == 'always', 'Display recovery is disabled')
-    print('PASS: app-only startup, login-gated consoles, keyboard escape policy, unprivileged UI, SSH recovery.')
+    print('PASS: private PIN configuration, app-only startup, login-gated consoles, keyboard escape policy, unprivileged UI, SSH recovery.')
 
 
 if __name__ == '__main__':

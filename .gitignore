@@ -27,6 +27,8 @@ id_ed25519
 *.nmconnection
 tailscaled.state*
 rules.json
+pin.json
+tailbridge-lock/
 install-backup/
 .DS_Store
 .idea/

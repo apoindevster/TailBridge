@@ -6,7 +6,8 @@ import time
 import tkinter as tk
 from tkinter import font
 
-from .common import UserError, management_urls, request, validate_wifi
+from .common import LockedError, UserError, management_urls, request, validate_wifi
+from .lock import valid_pin
 
 # A static neon console: no animation or screen texture competing with small text.
 BG, PANEL, INK, MUTED = "#0D1021", "#191E36", "#EDF4FF", "#ADBBD5"
@@ -17,8 +18,21 @@ LINE, SELECTED, ERROR = "#647496", "#2A3553", ORANGE
 class Demo:
     def __init__(self):
         self.connected = False
+        self.session = ''
 
     def __call__(self, command, **data):
+        if command in ('lock', 'lock_status'):
+            if command == 'lock':
+                self.session = ''
+            return {'configured': True, 'retry_after': 0}
+        if command == 'unlock':
+            # Synthetic preview only. Production has no default PIN.
+            if data.get('pin') == '123456':
+                self.session = 'synthetic-preview-session-only'
+                return {'unlocked': True, 'session': self.session}
+            return {'unlocked': False, 'configured': True, 'retry_after': 2}
+        if not self.session or data.get('session') != self.session:
+            raise LockedError('Screen locked. Enter your PIN.')
         if command == "scan":
             return [{"ssid": name, "ssid_hex": name.encode().hex(), "security": security, "strength": strength}
                     for name, security, strength in [("Workshop Wi-Fi", "wpa-psk", 92), ("Guest network", "open", 68),
@@ -57,7 +71,11 @@ class App:
         self.work = ThreadPoolExecutor(max_workers=1)
         self.completed = queue.Queue()
         self.busy, self.closed = False, False
-        self.networks, self.status, self.page = [], {}, "networks"
+        self.networks, self.status, self.page = [], {}, "locked"
+        self.session, self.pin_configured = '', False
+        self.pending_lock, self.next_lock_retry = True, 0
+        self.scan_pending = False
+        self.retry_deadline, self.lock_error = 0, False
         self.offset, self.generation = 0, 0
         self.selected, self.value, self.keyboard_mode = None, "", "abc"
         self.revealed, self.last_touch, self.reveal_until = False, time.monotonic(), 0
@@ -67,7 +85,7 @@ class App:
         self.root.protocol("WM_DELETE_WINDOW", self.window_close)
         self.root.bind("<Alt-F4>", self.window_close)
         self.render()
-        self.call("scan", self.scanned)
+        self.send_lock()
         self.render()
         root.after(50, self.pump)
         root.after(4000, self.poll)
@@ -78,6 +96,7 @@ class App:
     def close(self):
         self.closed = True
         self.value = ""
+        self.session = ''
         self.work.shutdown(wait=False, cancel_futures=True)
         self.root.destroy()
 
@@ -116,6 +135,8 @@ class App:
         return item
 
     def navigate(self, page):
+        if not self.session:
+            return
         if self.busy and self.page == "joining":
             return
         self.value = ""
@@ -125,21 +146,111 @@ class App:
         self.render()
         if page == "status" and not self.busy:
             self.call("status", self.updated)
+        elif page == 'networks':
+            self.scan_pending = True
+            if not self.busy:
+                self.rescan()
+
+    def lock_screen(self):
+        # Hide private data immediately, even if a prior status call is finishing.
+        # Its callback is invalidated; the broker lock runs before any new unlock.
+        self.session, self.value, self.notice = '', '', ''
+        self.networks, self.status, self.selected = [], {}, None
+        self.revealed, self.pin_configured = False, False
+        self.page, self.generation = 'locked', self.generation + 1
+        self.pending_lock, self.next_lock_retry = True, 0
+        self.scan_pending = False
+        self.render()
+        self.send_lock()
+
+    def send_lock(self):
+        if not self.busy and self.pending_lock and time.monotonic() >= self.next_lock_retry:
+            self.next_lock_retry = time.monotonic() + 5
+            self.call('lock', self.locked)
+
+    def locked(self, result):
+        self.pending_lock, self.notice, self.lock_error = False, '', False
+        self.lock_state(result)
+        self.render()
+
+    def lock_state(self, result):
+        configured = result.get('configured') is True
+        changed = self.pin_configured != configured
+        self.pin_configured = configured
+        self.retry_deadline = time.monotonic() + min(60, max(0, int(result.get('retry_after', 0))))
+        if self.lock_error:
+            self.notice, self.lock_error = '', False
+        if changed:
+            self.render()
+        self.update_lock()
+
+    def unlock_pin(self):
+        if self.busy or self.pending_lock or not self.pin_configured or time.monotonic() < self.retry_deadline:
+            return
+        if not valid_pin(self.value):
+            self.notice = 'Enter 6–12 digits.'
+            self.update_lock()
+            return
+        pin, self.value = self.value, ''
+        self.notice = 'Checking PIN…'
+        self.call('unlock', self.unlocked, pin=pin)
+        self.render()
+
+    def unlocked(self, result):
+        if result.get('unlocked') is True and isinstance(result.get('session'), str) and result['session']:
+            self.session = result['session']
+            self.last_touch = time.monotonic()
+            self.navigate('home')
+        else:
+            self.notice = 'Incorrect PIN.'
+            self.lock_state(result)
+            self.render()
+
+    def update_lock(self):
+        if self.page != 'locked' or not hasattr(self, 'lock_notice'):
+            return
+        remaining = max(0, int(self.retry_deadline - time.monotonic() + 0.999))
+        if self.pending_lock:
+            message = self.notice or 'Securing screen…'
+        elif not self.pin_configured:
+            message = self.notice or 'PIN setup required.\nRun installer through SSH.'
+        elif remaining:
+            message = ('Incorrect PIN.\n' if self.notice == 'Incorrect PIN.' else '') + 'Try again in %ds.' % remaining
+        else:
+            message = self.notice
+        if self.lock_notice.cget('text') != message:
+            self.lock_notice.configure(text=message)
+        state = 'normal' if self.pin_configured and not self.pending_lock and not self.busy else 'disabled'
+        for key in self.pin_keys:
+            if key.cget('state') != state:
+                key.configure(state=state)
+        unlock_state = state if valid_pin(self.value) and not remaining else 'disabled'
+        if self.unlock_button.cget('state') != unlock_state:
+            self.unlock_button.configure(state=unlock_state,
+                                         bg=ACCENT if unlock_state == 'normal' else PANEL,
+                                         highlightbackground=ACCENT if unlock_state == 'normal' else LINE)
 
     def call(self, command, done, **kwargs):
         if self.busy:
             return
         self.busy = True
         generation = self.generation
+        if command in ('status', 'scan', 'login', 'connect'):
+            kwargs['session'] = self.session
 
         def operation():
+            locked = False
             try:
                 result, error = self.client(command, **kwargs), None
+            except LockedError:
+                result, error, locked = None, 'Screen locked. Enter your PIN.', True
             except UserError as exc:
                 result, error = None, str(exc)
             except Exception:
                 result, error = None, "Service unavailable. Check installation through SSH."
-            self.completed.put((generation, done, result, error, command))
+            finally:
+                kwargs.clear()
+            self.completed.put((generation, done, result, error, command, locked))
 
         self.work.submit(operation)
 
@@ -147,11 +258,16 @@ class App:
         if self.closed:
             return
         try:
-            generation, done, result, error, command = self.completed.get_nowait()
+            generation, done, result, error, command, locked = self.completed.get_nowait()
             self.busy = False
             if generation == self.generation:
-                if error:
+                if locked:
+                    self.lock_screen()
+                elif error:
                     self.notice = error
+                    if self.page == 'locked':
+                        self.notice = 'Lock unavailable.\nCheck setup through SSH.'
+                        self.pin_configured, self.lock_error = False, True
                     if command == "status":
                         self.status["tailnet"] = {"state": "Unavailable"}
                     if self.page == "joining":
@@ -167,12 +283,22 @@ class App:
             self.update_field()
         if self.page in ("password", "hidden") and now - self.last_touch > 120:
             self.navigate("networks")
+        if self.page == 'locked':
+            if self.value and now - self.last_touch > 30:
+                self.value = ''
+                self.update_field()
+            self.send_lock()
+            self.update_lock()
+        elif self.page == 'networks' and self.scan_pending and not self.busy:
+            self.rescan()
         self.root.after(50, self.pump)
 
     def poll(self):
         if self.closed:
             return
-        if not self.busy and self.page in ("networks", "status", "tailnet"):
+        if not self.busy and self.page == 'locked' and not self.pending_lock:
+            self.call('lock_status', self.lock_state)
+        elif not self.busy and self.page in ("home", "networks", "status", "tailnet"):
             self.call("status", self.updated)
         self.root.after(5000, self.poll)
 
@@ -192,12 +318,13 @@ class App:
 
     def rescan(self):
         if not self.busy:
+            self.scan_pending = False
             self.notice = "Scanning for networks…"
             self.call("scan", self.scanned)
             self.render()
 
     def select(self, item):
-        if self.busy:
+        if self.busy or not self.session:
             return
         self.selected, self.value, self.keyboard_mode = dict(item), "", "abc"
         self.notice, self.revealed = "", False
@@ -212,7 +339,7 @@ class App:
         self.navigate("hidden")
 
     def join(self):
-        if self.busy:
+        if self.busy or not self.session:
             return
         if self.page == "hidden":
             raw = self.value.encode("utf-8")
@@ -240,6 +367,20 @@ class App:
         self.navigate("status")
 
     def key(self, char):
+        if self.page == 'locked':
+            if self.busy or not self.pin_configured or self.pending_lock:
+                return
+            if char == 'BACK':
+                self.value = self.value[:-1]
+            elif char == 'CLEAR':
+                self.value = ''
+            elif char in '0123456789' and len(char) == 1 and len(self.value) < 12:
+                self.value += char
+            if self.notice == 'Incorrect PIN.':
+                self.notice = ''
+            self.update_field()
+            self.update_lock()
+            return
         if char == "BACK":
             self.value = self.value[:-1]
         elif char == "CLEAR":
@@ -249,6 +390,17 @@ class App:
         self.update_field()
 
     def physical_key(self, event):
+        if self.page == 'locked':
+            self.touch()
+            if event.keysym == 'BackSpace':
+                self.key('BACK')
+            elif event.keysym in ('Return', 'KP_Enter'):
+                self.unlock_pin()
+            elif event.keysym == 'Escape':
+                self.key('CLEAR')
+            elif event.char:
+                self.key(event.char)
+            return 'break'
         if self.page not in ("password", "hidden"):
             return
         self.touch()
@@ -268,6 +420,9 @@ class App:
         self.update_field()
 
     def update_field(self):
+        if self.page == 'locked' and hasattr(self, 'field'):
+            self.field.configure(text='•' * len(self.value) or 'PIN', fg=INK if self.value else MUTED)
+            return
         if self.page not in ("password", "hidden") or not hasattr(self, "field"):
             return
         shown = self.value if self.page == "hidden" or self.revealed else "•" * len(self.value)
@@ -306,9 +461,32 @@ class App:
         for x, width, color in ((0, 240, CYAN), (240, 160, ACCENT), (400, 80, ORANGE)):
             tk.Frame(self.root, bg=color).place(x=x, y=318, width=width, height=2)
         page = self.page
-        if page == "networks":
+        if page == 'locked':
+            self.label('Screen locked', 16, 10, 448, 36, self.heading)
+            self.label('Enter your PIN', 16, 54, 204, 26, self.small, MUTED)
+            self.field = self.label('', 16, 90, 204, 42)
+            self.field.configure(bg=PANEL, padx=6, highlightthickness=1, highlightbackground=CYAN)
+            self.lock_notice = self.label('', 16, 140, 204, 70, self.small, ORANGE)
+            self.label('Forgot PIN? Use SSH.', 16, 214, 204, 26, self.small, MUTED)
+            self.pin_keys = []
+            for n, digit in enumerate('123456789'):
+                self.pin_keys.append(self.button(digit, lambda d=digit: self.key(d),
+                                                248 + (n % 3) * 74, 72 + (n // 3) * 58, 68, 52, size=self.keyfont))
+            for n, (label, key) in enumerate((('Delete', 'BACK'), ('0', '0'), ('Clear', 'CLEAR'))):
+                self.pin_keys.append(self.button(label, lambda k=key: self.key(k),
+                                                248 + n * 74, 246, 68, 52, size=self.small if n != 1 else self.keyfont))
+            self.unlock_button = self.button('Unlock', self.unlock_pin, 16, 254, 204, 48, primary=True, disabled=True)
+            self.update_field()
+            self.update_lock()
+        elif page == 'home':
+            self.label('TailBridge', 16, 12, 448, 36, self.heading)
+            self.label('Choose an action.', 16, 52, 448, 26, self.small, MUTED)
+            self.button('Lock', self.lock_screen, 16, 96, 448, 54, primary=True)
+            self.button('Status', lambda: self.navigate('status'), 16, 164, 448, 54)
+            self.button('Wi-Fi', lambda: self.navigate('networks'), 16, 232, 448, 54)
+        elif page == "networks":
             self.label("Choose Wi-Fi", 16, 8, 310, 34, self.heading)
-            self.button("Status", lambda: self.navigate("status"), 360, 6, 104)
+            self.button("Home", lambda: self.navigate("home"), 360, 6, 104)
             subtitle = "Demo · sample networks" if self.demo else "Select a network to connect your Pi."
             self.label(subtitle, 16, 46, 448, 22, self.small, MUTED)
             for index, item in enumerate(self.networks[self.offset:self.offset + 3]):
@@ -359,7 +537,7 @@ class App:
                        16, 145, 448, 120, self.small, color=MUTED)
         elif page == "status":
             self.label("TailBridge", 16, 8, 310, 34, self.heading)
-            self.button("Wi-Fi", lambda: self.navigate("networks"), 360, 6, 104)
+            self.button("Home", lambda: self.navigate("home"), 360, 6, 104)
             tailnet = self.status.get("tailnet", {})
             ip_url, name_url = management_urls(tailnet)
             ready = bool(ip_url)

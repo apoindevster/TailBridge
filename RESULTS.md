@@ -1,5 +1,86 @@
 # Results
 
+## PIN/Home package uploaded for installation — 2026-11-17
+
+Rebuilt the current package with the distribution Python and the previously
+tested Go toolchain. Go race tests, all **53 host Python tests**, arm64 packaging,
+publication boundaries and release secret scanning passed. Uploaded the archive
+and checksum to a new private staging directory on the authorized Pi, verified
+the checksum there and extracted it without replacing the installed application.
+
+The target reports arm64 and Trixie. Its read-only installation preflight passed
+console authentication, the dedicated UI account and active SSH recovery. All
+**53 Python tests also passed on the Pi in 25.452 seconds**, using temporary
+synthetic fixtures, including PIN storage and broker transport tests. No real PIN,
+Wi-Fi credentials or Tailscale state was read or changed. No installer, service
+restart or reboot was run; the user received an interactive SSH install command.
+
+Uploaded archive SHA-256:
+`deb09df2448e0d5d244160278df2eb3e6b19c275db5a9986d819b549394c4810`.
+This receipt records the completed transfer after archive generation. Actual
+activation, post-boot root audit, physical touch and PIN verification usability
+remain pending; these synthetic device tests do not establish those results.
+
+## Build-host D-Bus dependency diagnostics — 2026-11-17
+
+The reported four missing-`dbus` errors match the four connection tests, which
+need the Python D-Bus binding even during a cross-build. The host's distribution
+Python can import it; an isolated venv reproduced the missing dependency. The
+user's shell interpreter has not been directly observed.
+
+The build now checks Python version, Tk and D-Bus imports before downloading or
+compiling, gives distribution-package/venv instructions on failure, and supports
+`TAILBRIDGE_PYTHON` to select an interpreter explicitly for all Python build
+steps. README and contributor instructions now place build-host dependencies
+before the build command. Network tests remain mandatory.
+
+Verified that an isolated venv fails at preflight with actionable instructions
+and no traceback. Rebuilding with the distribution Python passed Go race tests,
+all **53 Python tests** and arm64 packaging. Shell syntax and whitespace checks
+also pass. This build-host correction adds no Pi hardware evidence.
+
+## Installer PIN lock and Home screen — 2026-11-17
+
+Added the requested Home screen with exactly Lock, Status and Wi-Fi, plus a
+numeric PIN lock using the existing neon palette, typography and control styles.
+Startup/display restart begins locked; successful authentication opens Home.
+Status and Wi-Fi return to Home. Lock clears private visible state and discards
+late replies before accepting another unlock. Saved networking, redirects and
+tailnet-only web management continue while the touchscreen is locked.
+
+The unified installer privately prompts twice for a 6–12 digit PIN when missing,
+preserves it on reinstall and accepts `--reset-pin` for an administrator reset.
+There is no production default or command-line/environment PIN input. The broker
+checks a random session on every network/status/enrollment operation, stores only
+a salted PBKDF2-HMAC-SHA256 result in root-private state and persists rate-limited
+attempts before verification. Reset/verification serialization prevents an
+in-flight attempt from replacing a newly configured PIN. Authenticated SSH
+recovery, app-only startup and existing tailnet controls remain in place.
+
+Executed validation:
+
+- **53 Python tests passed**, including PIN validation, hidden-terminal setup,
+  salted private storage, all protected broker commands, session revocation,
+  persisted cooldowns, malformed state, write failures, reset races and a real
+  Unix-socket client/server authentication and revocation check. The transport
+  test substitutes only privileged socket ownership and uses synthetic state.
+- **20 native 480×320 captures passed**, including the six new Home/PIN states,
+  masked input, wrong-PIN cooldown, setup/service errors, late-reply suppression
+  and input clearing. All management/enrollment QR payloads decoded correctly.
+  Visual finish review returned **ship**; documentation records the same theme
+  and updated navigation without changing the design tokens.
+- Go race tests, the Linux arm64 build, Python compilation, shell syntax,
+  systemd unit verification, workflow lint and publication boundary checks passed.
+  Gitleaks found no secrets in the **89-file source snapshot** or final release
+  contents. Screenshots use synthetic data and stripped metadata; protected PIN
+  state is excluded from source and release artifacts.
+
+This feature has **not been installed on the Pi**. No real PIN was requested,
+read or configured. Physical keypad accuracy, Pi PIN-verification latency,
+real-device restart/cooldown and administrator recovery checks remain pending.
+No physical phone scan, direct/DERP benchmark or 24-hour test is claimed. See
+the updated acceptance checklist in [docs/TESTING.md](docs/TESTING.md).
+
 ## Initial commit privacy review — 2026-11-17
 
 Rechecked all 80 publishable files before the initial local commit. Gitleaks

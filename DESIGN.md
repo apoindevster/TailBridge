@@ -226,7 +226,13 @@ choice rows are 48 px high.
 
 - **Network list:** heading at y=8, subtitle at y=46, then up to three rows at
   y=74, 124 and 174. Pagination occupies y=224; Hidden network and Rescan begin
-  at y=270. Status sits at the upper right.
+  at y=270. Home sits at the upper right.
+- **Home:** the unlocked landing page has three 448 × 54 px buttons at x=16,
+  y=96, 164 and 232: Lock, Status and Wi-Fi. Lock uses the existing primary style.
+- **PIN lock:** the masked 204 × 42 px readout at (16, 90) and notices form a
+  left column. A numeric keypad uses 68 × 52 px keys at x=248, 322 and 396, on a
+  58 px vertical pitch from y=72; Delete, 0 and Clear occupy the last row at
+  y=246. Unlock is 204 × 48 px at (16, 254). No PIN reveal control is provided.
 - **Password / hidden network:** a 28 px title region at y=0, a 21 px instruction
   or error line at y=28 and a 354 × 38 px readout at (16, 52). Show / Hide or
   Clear is a separate 86 × 42 px control at (378, 50).
@@ -292,10 +298,17 @@ text and a steel outline. Enabled buttons are focusable; disabled buttons are
 excluded from native keyboard focus. Removing magenta from a disabled primary
 action makes its unavailable state visible without compromising label contrast.
 
-Back, Cancel, Status and Wi-Fi are explicit labeled controls. The screen does
-not use a persistent navigation bar. Network list and status link to each other;
-the lower actions carry the current task forward or back. The touchscreen has
-no exit or system-administration action.
+Back, Cancel, Home, Lock, Status and Wi-Fi are explicit labeled controls. The
+screen does not use a persistent navigation bar. Startup requires the PIN and
+opens Home; the network list and status return to Home through their upper-right
+button. The lower actions carry the current task forward or back. The touchscreen
+has no exit or system-administration action.
+
+Lock clears private visible state immediately. PIN entry is always masked, clears
+on submission and after 30 seconds without input, and uses the existing orange
+notice treatment for cooldown and recovery errors. Keypad and Unlock availability
+reflect broker readiness; authentication is required before leaving the lock
+screen. No automatic idle lock or screen blanking is configured.
 
 ### Network rows and security choices
 
@@ -337,9 +350,10 @@ retry, without asking for a password. Validation errors stay on the entry screen
 
 Network work runs off the Tk thread. Completion is checked every 50 ms. Status
 polling begins after 4 seconds, then repeats every 5 seconds while eligible and
-idle. Polls run only on the network list, status and enrollment pages; they do
-not redraw the network list or change its selected page. Typing is not
-interrupted by status refresh.
+idle. Status polls run on Home, the network list, status and enrollment pages;
+the locked page polls only authentication metadata. Polls do not redraw the
+network list or change its selected page. Typing is not interrupted by status
+refresh.
 
 ### Status and Tailscale enrollment
 

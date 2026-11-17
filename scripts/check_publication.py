@@ -13,13 +13,14 @@ import tarfile
 
 ROOT = Path(__file__).resolve().parents[1]
 PRIVATE_PARTS = {'.git', '.cache', '.venv', '.local', '.ssh', '__pycache__',
-                 '.pytest_cache', 'install-backup', 'node_modules'}
+                 '.pytest_cache', 'install-backup', 'tailbridge-lock', 'node_modules'}
 PRIVATE_SUFFIXES = {'.pyc', '.pem', '.key', '.p12', '.pfx', '.nmconnection',
                     '.pcap', '.pcapng', '.log', '.dtbo', '.dtb', '.zip', '.gz'}
 SCREENSHOTS = {name + '.png' for name in (
     'wifi', 'password', 'symbols', 'joining', 'failed-join', 'open-failed',
     'status', 'status-renamed', 'status-no-name', 'status-long-name', 'status-no-qr',
-    'status-error', 'status-offline', 'enrollment')}
+    'status-error', 'status-offline', 'enrollment', 'home', 'locked', 'lock-pin',
+    'lock-wait', 'lock-setup', 'lock-error')}
 
 
 def check_path(name):
@@ -29,7 +30,7 @@ def check_path(name):
     if (PRIVATE_PARTS.intersection(path.parts) or path.suffix.lower() in PRIVATE_SUFFIXES
             or path.name.startswith('tailscaled.state')
             or path.name.startswith('.env') and path.name != '.env.example'
-            or path.name in {'rules.json', 'id_rsa', 'id_ed25519', '.coverage',
+            or path.name in {'rules.json', 'pin.json', 'id_rsa', 'id_ed25519', '.coverage',
                              '.bash_history', '.zsh_history', '.netrc'}):
         raise ValueError(f'Private/generated file must not be published: {name}')
 

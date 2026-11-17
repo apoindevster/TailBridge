@@ -5,7 +5,8 @@ zxing-cpp and ImageMagick `import`
 available) from the repository root. This captures only the synthetic application's
 window: wifi, password, symbols, joining, failed-join, open-failed, status,
 status-renamed, status-no-name, status-long-name, status-no-qr, status-error,
-status-offline and enrollment. All 14 images are
+status-offline and enrollment, plus home, locked, lock-pin, lock-wait, lock-setup
+and lock-error. All 20 images are
 480×320, not photographs of the SunFounder screen. Captures strip metadata before
 being saved; publication checks reject unexpected PNG metadata. The source PNGs
 are intentionally tracked so GitHub can render the README gallery. Never replace
@@ -17,3 +18,9 @@ check, not a phone-camera test of the physical screen. The enrollment QR contain
 a deliberately fake URL. No real password, SSID,
 Tailscale identity or host desktop is recorded. These files are development evidence
 and are not assets rendered by the installed application.
+
+PIN captures use the public demo fixture only and never show its input unmasked.
+The smoke test covers startup lock, wrong PIN/cooldown, unlock to Home, navigation,
+late-reply suppression during Lock, partial-input clearing, setup/service errors
+and session revocation after a simulated broker restart. Actual persisted attempt
+throttling and root-private storage are covered separately by tests/test_lock.py.

@@ -21,8 +21,12 @@ SunFounder MHS35IPS / ST7796U + XPT2046, 480 × 320 landscape.
 - [x] Add a plain management-URL QR to Status, with name/IP fallback, stable polling and screenshot decoding.
 - [x] Build and stage the QR package; pass 30 Python checks on host and Pi, 14 decoded native captures and Pi installation preflight.
 - [x] Prepare GitHub publication: MIT license, synthetic README gallery, privacy review, source/release checks and CI; validate workflow commands in clean Ubuntu 24.04.
+- [x] Add the requested installer-configured PIN lock and Home screen; complete broker security, native UI, package and publication checks.
+- [x] Diagnose missing build-host D-Bus imports; add early dependency checks, explicit Python selection and host setup instructions.
+- [x] Rebuild and upload the current PIN/Home bundle; verify its checksum, installation preflight and all 53 Python tests on the Pi using synthetic state.
+- [ ] Install the PIN/Home package with a privately chosen PIN and verify it on the actual Pi.
 - [ ] Push to the chosen GitHub repository and confirm its first hosted CI run and artifact uploads.
-- [ ] Install the QR bundle and run the post-boot kiosk audit with sudo.
+- [ ] Run the post-boot kiosk audit with sudo after installing the current PIN/Home bundle, which includes the QR addition.
 - [ ] User: scan the management QR from the physical display using a tailnet-connected phone.
 - [ ] User: test physical keyboard escape prevention and confirm the neon theme on the SPI display.
 - [ ] User: visually confirm the screen and touch alignment, test Wi-Fi changes, enrollment and redirection.
@@ -42,7 +46,7 @@ the Pi was unreachable over its LAN address during this consolidation.
 
 The Pi is reachable again. The MagicDNS release is installed; both management
 URLs return 200 and unrelated Hosts/cross-origin mutations return 403. The QR
-addition is the next package; activation requires sudo authentication. Physical
+addition is included in the current PIN/Home package; activation requires sudo authentication. Physical
 phone scanning and the post-boot root kiosk audit remain pending.
 
 The public package now excludes the SunFounder overlay because its redistribution
@@ -50,3 +54,13 @@ license is not established. The unified installer downloads and checksum-verifie
 it locally. Its download path and 35 Python checks pass on the host; the publication
 changes have not been installed on the Pi. A clean Ubuntu CI rehearsal also passed
 with Go 1.27.4, including the arm64 build and 14 decoded synthetic UI captures.
+
+The PIN/Home extension now passes 53 Python tests, including real Unix-socket
+authentication/revocation, and 20 native UI captures. The current arm64 package
+includes private installer PIN setup, persistent attempt throttling and Home
+navigation in the existing theme. No PIN was configured on the actual Pi and this
+extension has not been installed there by this task. The rebuilt package is now
+uploaded and extracted in a separate staging directory; its checksum, read-only
+installation preflight and 53 synthetic Python tests pass on the Pi. Installation
+prompts the administrator privately; physical touch, PIN latency and recovery
+checks remain pending.

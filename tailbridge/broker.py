@@ -9,15 +9,27 @@ import re
 import socket
 import struct
 
-from .common import SOCKET, UserError, read_message
+from .common import SOCKET, LockedError, UserError, read_message
+from .lock import PinGate
 
 
-def dispatch(backend, data):
+def dispatch(backend, data, gate=None):
     command = data.get("command")
-    fields = {"status": {"command"}, "scan": {"command"}, "login": {"command"},
-              "connect": {"command", "ssid_hex", "security", "password", "hidden"}}
+    fields = {"status": {"command", "session"}, "scan": {"command", "session"},
+              "login": {"command", "session"}, "lock": {"command"},
+              "lock_status": {"command"}, "unlock": {"command", "pin"},
+              "connect": {"command", "session", "ssid_hex", "security", "password", "hidden"}}
     if not isinstance(command, str) or command not in fields or set(data) - fields[command]:
         raise UserError("Unsupported request.")
+    if gate is None:
+        raise LockedError('Screen locked. Enter your PIN.')
+    if command == 'lock':
+        return gate.lock()
+    if command == 'lock_status':
+        return gate.state()
+    if command == 'unlock':
+        return gate.unlock(data.get('pin'))
+    gate.authorize(data.get('session'))
     if command == "connect":
         if not isinstance(data.get("hidden", False), bool):
             raise UserError("Invalid request.")
@@ -30,7 +42,8 @@ def allowed_peer(conn, uid):
     return peer_uid in (0, uid)
 
 
-def serve(backend, path, uid, gid):
+def serve(backend, path, uid, gid, gate=None):
+    gate = gate or PinGate()
     if os.path.lexists(path):
         os.unlink(path)  # Parent directory is root-owned and not writable by UI.
     with socket.socket(socket.AF_UNIX, socket.SOCK_STREAM) as listener:
@@ -48,9 +61,13 @@ def serve(backend, path, uid, gid):
                     with conn.makefile("rwb") as stream:
                         try:
                             data = read_message(stream)
-                            result = dispatch(backend, data)
-                            data.clear()
+                            try:
+                                result = dispatch(backend, data, gate)
+                            finally:
+                                data.clear()
                             answer = {"ok": True, "data": result}
+                        except LockedError:
+                            answer = {"ok": False, "code": "locked", "error": "Screen locked. Enter your PIN."}
                         except UserError as error:
                             answer = {"ok": False, "error": str(error)}
                         except Exception:
