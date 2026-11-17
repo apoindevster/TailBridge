@@ -22,6 +22,13 @@ boundaries, archive checksum verification and source/history/release secret
 scans. These are host tests; no Pi installation, physical test or traffic
 benchmark was performed for this fix.
 
+GitHub Actions [run 44140891293](https://github.com/apoindevster/TailBridge/actions/runs/44140891293)
+then passed both jobs for fix commit `9bd51f5` on `fix/ci-idle-clock`, including
+the previously failing UI step and the complete build/release audit. GitHub
+confirmed both uploaded artifacts: `tailbridge-pi-arm64` and
+`synthetic-ui-captures`. This verifies the correction on a hosted runner; merging
+the branch into `main` remains separate.
+
 ## PIN/Home package uploaded for installation — 2026-11-17
 
 Rebuilt the current package with the distribution Python and the previously
