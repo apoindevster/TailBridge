@@ -7,6 +7,7 @@ import sys
 import threading
 import time
 import tkinter as tk
+from types import SimpleNamespace
 from unittest.mock import patch
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
@@ -41,6 +42,8 @@ class Fixture(Demo):
 
 parser = argparse.ArgumentParser(description=__doc__)
 parser.add_argument('--decode-qr', action='store_true', help='Decode actual captures with Pillow and zxing-cpp (development only)')
+parser.add_argument('--clock-start', type=float, default=10,
+                    help='Initial UI monotonic time; defaults to a fresh-runner clock')
 args = parser.parse_args()
 if args.decode_qr:
     from PIL import Image
@@ -49,6 +52,12 @@ if args.decode_qr:
 root = tk.Tk()
 root.geometry('+20+20')
 fixture = Fixture()
+# A fresh clock catches absolute-zero timeout assumptions even on long-lived hosts.
+# Patch only the UI's clock; worker waits and the test's own deadlines stay real.
+clock_started = time.monotonic()
+ui_clock = SimpleNamespace(monotonic=lambda: args.clock_start + time.monotonic() - clock_started)
+clock_patch = patch('tailbridge.ui.time', ui_clock)
+clock_patch.start()
 app = App(root, fixture, demo=True, fullscreen=False)
 captures = Path('artifacts')
 captures.mkdir(exist_ok=True)
@@ -91,7 +100,7 @@ try:
     settle()
     assert app.page == 'locked' and not app.value and not app.session
     capture('lock-wait')
-    app.retry_deadline = 0  # Synthetic clock; real persistent throttling has separate tests.
+    app.retry_deadline = ui_clock.monotonic() - 1  # Real persistent throttling has separate tests.
     app.touch()
     for char in '123456': app.key(char)
     assert '123456' not in app.field.cget('text')
@@ -122,7 +131,7 @@ try:
     capture('symbols')
     app.toggle_reveal()
     assert app.field.cget('text') == 'SyntheticTest!'
-    app.reveal_until = 0
+    app.reveal_until = ui_clock.monotonic() - 1
     app.pump()
     assert not app.revealed
     fixture.fail = True
@@ -194,7 +203,9 @@ try:
     app.join()
     assert app.selected['hidden'] and app.page == 'password'
     app.key('x')
-    app.last_touch = 0
+    app.pump()
+    assert app.page == 'password' and app.value == 'x'
+    app.last_touch = ui_clock.monotonic() - 121
     app.pump()
     assert app.page == 'networks' and not app.value
     settle()
@@ -210,7 +221,9 @@ try:
     # A partial PIN expires, and Escape only clears the field.
     app.touch()
     for char in '123': app.key(char)
-    app.last_touch = 0
+    app.pump()
+    assert app.value == '123' and app.page == 'locked'
+    app.last_touch = ui_clock.monotonic() - 31
     app.pump()
     assert not app.value and app.page == 'locked'
     app.physical_key(type('Key', (), {'keysym': 'Escape', 'char': ''})())
@@ -240,3 +253,4 @@ try:
           ('; all captured QR payloads decoded correctly' if args.decode_qr else ''))
 finally:
     app.close()
+    clock_patch.stop()

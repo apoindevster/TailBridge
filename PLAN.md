@@ -25,7 +25,8 @@ SunFounder MHS35IPS / ST7796U + XPT2046, 480 × 320 landscape.
 - [x] Diagnose missing build-host D-Bus imports; add early dependency checks, explicit Python selection and host setup instructions.
 - [x] Rebuild and upload the current PIN/Home bundle; verify its checksum, installation preflight and all 53 Python tests on the Pi using synthetic state.
 - [ ] Install the PIN/Home package with a privately chosen PIN and verify it on the actual Pi.
-- [ ] Push to the chosen GitHub repository and confirm its first hosted CI run and artifact uploads.
+- [x] Publish to GitHub and inspect the first hosted CI run; identify the native UI test's clock-origin assumption.
+- [x] Confirm the corrected hosted CI run and artifact uploads on `fix/ci-idle-clock`.
 - [ ] Run the post-boot kiosk audit with sudo after installing the current PIN/Home bundle, which includes the QR addition.
 - [ ] User: scan the management QR from the physical display using a tailnet-connected phone.
 - [ ] User: test physical keyboard escape prevention and confirm the neon theme on the SPI display.
