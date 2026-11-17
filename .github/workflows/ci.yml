@@ -1,0 +1,90 @@
+name: Build and verify
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  audit:
+    name: Publication and workflow checks
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - name: Install verified audit tools
+        run: ./scripts/ci_tools.sh
+      - name: Validate workflow and publishable source
+        run: |
+          .cache/tools/actionlint
+          python3 scripts/check_publication.py --stage-source .cache/public-source
+      - name: Scan source and complete checked-out history
+        run: |
+          .cache/tools/gitleaks dir .cache/public-source --redact --no-banner --ignore-gitleaks-allow
+          .cache/tools/gitleaks git . --log-opts=--all --redact --no-banner --ignore-gitleaks-allow
+
+  build:
+    name: Test and package Linux arm64
+    needs: audit
+    runs-on: ubuntu-24.04
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-go@d8cbb8045d7f43706b9177cceb36c1f91a6644d5 # v7.1.0
+        with:
+          go-version: stable
+          cache: false
+      - name: Install host test dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install --no-install-recommends -y build-essential git curl ca-certificates \
+            python3-tk python3-dbus python3-venv python3-qrcode \
+            imagemagick xvfb xauth fonts-dejavu-core
+          python3 -m venv --system-site-packages .venv
+          .venv/bin/pip install -r requirements-dev.txt
+      - name: Verify native UI and synthetic QR captures
+        run: xvfb-run -a -s '-screen 0 800x600x24' .venv/bin/python tests/ui_smoke.py --decode-qr
+      - name: Test and cross-compile the Pi package
+        run: |
+          ./scripts/build.sh
+          python3 -m compileall -q tailbridge scripts tests
+          for script in scripts/*.sh; do bash -n "$script"; done
+      - name: Audit the actual release contents
+        run: |
+          ./scripts/ci_tools.sh
+          python3 scripts/check_publication.py
+          (cd build && sha256sum --check tailbridge-pi-arm64.tar.gz.sha256)
+          python3 scripts/check_publication.py --bundle build/tailbridge-pi --archive build/tailbridge-pi-arm64.tar.gz
+          mkdir .cache/release-check
+          tar -xzf build/tailbridge-pi-arm64.tar.gz -C .cache/release-check
+          python3 scripts/check_publication.py --bundle .cache/release-check/tailbridge-pi
+          .cache/tools/gitleaks dir .cache/release-check/tailbridge-pi --redact --no-banner --ignore-gitleaks-allow
+      - name: Upload installable arm64 package
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: tailbridge-pi-arm64
+          path: |
+            build/tailbridge-pi-arm64.tar.gz
+            build/tailbridge-pi-arm64.tar.gz.sha256
+            build/ts-redir-integration.patch
+          if-no-files-found: error
+          retention-days: 30
+      - name: Upload synthetic UI evidence
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: synthetic-ui-captures
+          path: artifacts/*.png
+          if-no-files-found: error
+          retention-days: 30

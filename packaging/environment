@@ -1,0 +1,3 @@
+WIFI_INTERFACE=wlan0
+# Leave empty to discover the SunFounder framebuffer by its driver name.
+FRAMEBUFFER=

@@ -1,0 +1,465 @@
+{
+  "schemaVersion": 2,
+  "generatedAt": "2026-11-17T02:06:38.142663+00:00",
+  "title": "Design System: TailBridge touchscreen",
+  "extensions": {
+    "colorMeta": {
+      "background": {
+        "role": "neutral",
+        "displayName": "Midnight indigo",
+        "tonalRamp": [
+          "oklch(15% 0.0353 274.72)",
+          "oklch(27% 0.0353 274.72)",
+          "oklch(38% 0.0353 274.72)",
+          "oklch(49% 0.0353 274.72)",
+          "oklch(61% 0.0353 274.72)",
+          "oklch(72% 0.0353 274.72)",
+          "oklch(84% 0.0353 274.72)",
+          "oklch(95% 0.0353 274.72)"
+        ]
+      },
+      "panel": {
+        "role": "neutral",
+        "displayName": "Raised indigo",
+        "tonalRamp": [
+          "oklch(15% 0.0464 273.56)",
+          "oklch(27% 0.0464 273.56)",
+          "oklch(38% 0.0464 273.56)",
+          "oklch(49% 0.0464 273.56)",
+          "oklch(61% 0.0464 273.56)",
+          "oklch(72% 0.0464 273.56)",
+          "oklch(84% 0.0464 273.56)",
+          "oklch(95% 0.0464 273.56)"
+        ]
+      },
+      "ink": {
+        "role": "neutral",
+        "displayName": "Ice white",
+        "tonalRamp": [
+          "oklch(15% 0.0165 259.42)",
+          "oklch(27% 0.0165 259.42)",
+          "oklch(38% 0.0165 259.42)",
+          "oklch(49% 0.0165 259.42)",
+          "oklch(61% 0.0165 259.42)",
+          "oklch(72% 0.0165 259.42)",
+          "oklch(84% 0.0165 259.42)",
+          "oklch(95% 0.0165 259.42)"
+        ]
+      },
+      "muted": {
+        "role": "neutral",
+        "displayName": "Blue-gray",
+        "tonalRamp": [
+          "oklch(15% 0.0401 262.89)",
+          "oklch(27% 0.0401 262.89)",
+          "oklch(38% 0.0401 262.89)",
+          "oklch(49% 0.0401 262.89)",
+          "oklch(61% 0.0401 262.89)",
+          "oklch(72% 0.0401 262.89)",
+          "oklch(84% 0.0401 262.89)",
+          "oklch(95% 0.0401 262.89)"
+        ]
+      },
+      "accent": {
+        "role": "primary",
+        "displayName": "Neon magenta",
+        "tonalRamp": [
+          "oklch(15% 0.2149 344.12)",
+          "oklch(27% 0.2149 344.12)",
+          "oklch(38% 0.2149 344.12)",
+          "oklch(49% 0.2149 344.12)",
+          "oklch(61% 0.2149 344.12)",
+          "oklch(72% 0.2149 344.12)",
+          "oklch(84% 0.2149 344.12)",
+          "oklch(95% 0.2149 344.12)"
+        ]
+      },
+      "cyan": {
+        "role": "secondary",
+        "displayName": "Electric cyan",
+        "tonalRamp": [
+          "oklch(15% 0.1238 203.52)",
+          "oklch(27% 0.1238 203.52)",
+          "oklch(38% 0.1238 203.52)",
+          "oklch(49% 0.1238 203.52)",
+          "oklch(61% 0.1238 203.52)",
+          "oklch(72% 0.1238 203.52)",
+          "oklch(84% 0.1238 203.52)",
+          "oklch(95% 0.1238 203.52)"
+        ]
+      },
+      "orange": {
+        "role": "tertiary",
+        "displayName": "Bright orange",
+        "tonalRamp": [
+          "oklch(15% 0.1399 63.42)",
+          "oklch(27% 0.1399 63.42)",
+          "oklch(38% 0.1399 63.42)",
+          "oklch(49% 0.1399 63.42)",
+          "oklch(61% 0.1399 63.42)",
+          "oklch(72% 0.1399 63.42)",
+          "oklch(84% 0.1399 63.42)",
+          "oklch(95% 0.1399 63.42)"
+        ]
+      },
+      "line": {
+        "role": "neutral",
+        "displayName": "Steel indigo",
+        "tonalRamp": [
+          "oklch(15% 0.0564 265.01)",
+          "oklch(27% 0.0564 265.01)",
+          "oklch(38% 0.0564 265.01)",
+          "oklch(49% 0.0564 265.01)",
+          "oklch(61% 0.0564 265.01)",
+          "oklch(72% 0.0564 265.01)",
+          "oklch(84% 0.0564 265.01)",
+          "oklch(95% 0.0564 265.01)"
+        ]
+      },
+      "selected": {
+        "role": "neutral",
+        "displayName": "Selected indigo",
+        "tonalRamp": [
+          "oklch(15% 0.0553 268.01)",
+          "oklch(27% 0.0553 268.01)",
+          "oklch(38% 0.0553 268.01)",
+          "oklch(49% 0.0553 268.01)",
+          "oklch(61% 0.0553 268.01)",
+          "oklch(72% 0.0553 268.01)",
+          "oklch(84% 0.0553 268.01)",
+          "oklch(95% 0.0553 268.01)"
+        ]
+      },
+      "qr-ink": {
+        "role": "neutral",
+        "displayName": "QR black",
+        "tonalRamp": [
+          "oklch(15% 0.0000 0.00)",
+          "oklch(27% 0.0000 0.00)",
+          "oklch(38% 0.0000 0.00)",
+          "oklch(49% 0.0000 0.00)",
+          "oklch(61% 0.0000 0.00)",
+          "oklch(72% 0.0000 0.00)",
+          "oklch(84% 0.0000 0.00)",
+          "oklch(95% 0.0000 0.00)"
+        ]
+      },
+      "qr-paper": {
+        "role": "neutral",
+        "displayName": "QR white",
+        "tonalRamp": [
+          "oklch(15% 0.0000 0.00)",
+          "oklch(27% 0.0000 0.00)",
+          "oklch(38% 0.0000 0.00)",
+          "oklch(49% 0.0000 0.00)",
+          "oklch(61% 0.0000 0.00)",
+          "oklch(72% 0.0000 0.00)",
+          "oklch(84% 0.0000 0.00)",
+          "oklch(95% 0.0000 0.00)"
+        ]
+      }
+    },
+    "typographyMeta": {
+      "headline": {
+        "displayName": "Console heading",
+        "purpose": "24 px bold DejaVu Sans Mono in cyan outside credential entry."
+      },
+      "body": {
+        "displayName": "Body and compact title",
+        "purpose": "18 px DejaVu Sans body, ordinary buttons, status and password or hidden-network headers."
+      },
+      "label": {
+        "displayName": "Auxiliary label",
+        "purpose": "14 px instructions, notices, management URLs, IP detail and Show / Hide / Clear labels."
+      },
+      "keyboard": {
+        "displayName": "Character key",
+        "purpose": "19 px labels on individual keyboard keys."
+      }
+    },
+    "shadows": [],
+    "motion": [],
+    "breakpoints": [],
+    "previewNotes": [
+      "Native Tk source in tailbridge/ui.py is authoritative. HTML/CSS snippets are visual translations for the design panel, not shipping web UI or evidence of browser, mobile or native interaction behavior.",
+      "Preview hover/active selectors display the native active palette; they do not prescribe additional Tk event behavior. The app has no transition or pressed-motion treatment.",
+      "Tonal ramps are synthesized OKLCH display metadata only. They are not additional shipping colors; DESIGN.md frontmatter holds the exact implemented hexadecimal palette.",
+      "The native viewport is fixed at 480 × 320. No responsive breakpoint, shadow, glow, texture, scanline, transition or decorative animation tokens are implemented.",
+      "The QR remains black on white. The readout outline is always cyan, not an inferred focused-field state.",
+      "Synthetic captures and palette calculations do not establish physical Pi usability or actual enrollment success."
+    ],
+    "native": {
+      "platform": "Python/Tk on a dedicated Xorg framebuffer session",
+      "source": "tailbridge/ui.py",
+      "viewport": {
+        "width": 480,
+        "height": 320,
+        "resizable": false,
+        "tkScaling": 1.0
+      },
+      "buttonOutline": {
+        "width": 1,
+        "restingPrimary": "{colors.accent}",
+        "restingSecondary": "{colors.line}",
+        "disabled": "{colors.line}",
+        "keyboardFocus": "{colors.cyan}"
+      },
+      "buttonStates": {
+        "primaryActive": "button-primary-active",
+        "secondaryActive": "button-secondary-active",
+        "disabled": "button-disabled",
+        "disabledTakeFocus": false
+      },
+      "readout": {
+        "widget": "Label",
+        "outlineWidth": 1,
+        "outlineColor": "{colors.cyan}",
+        "outlineAlwaysVisible": true,
+        "nativeBorderWidth": 0,
+        "textWidthBudget": 346
+      },
+      "consoleRail": {
+        "x": 0,
+        "y": 318,
+        "height": 2,
+        "segments": [
+          {
+            "x": 0,
+            "width": 240,
+            "color": "{colors.cyan}"
+          },
+          {
+            "x": 240,
+            "width": 160,
+            "color": "{colors.accent}"
+          },
+          {
+            "x": 400,
+            "width": 80,
+            "color": "{colors.orange}"
+          }
+        ]
+      },
+      "qr": {
+        "x": 16,
+        "y": 58,
+        "nominalSizeBudget": 192,
+        "wholePixelsPerModule": true,
+        "quietBorderModules": 4,
+        "dark": "{colors.qr-ink}",
+        "light": "{colors.qr-paper}"
+      },
+      "productionDisplay": {
+        "fullscreen": true,
+        "borderless": true,
+        "pointerHidden": true,
+        "windowManagerCloseIgnored": true,
+        "altF4Ignored": true,
+        "systemAdministration": "Authenticated login; SSH recovery preserved."
+      }
+    },
+    "contrast": [
+      {
+        "foreground": "ink",
+        "background": "background",
+        "ratio": 17.05,
+        "purpose": "Body text"
+      },
+      {
+        "foreground": "ink",
+        "background": "panel",
+        "ratio": 14.83,
+        "purpose": "Secondary labels and readout"
+      },
+      {
+        "foreground": "muted",
+        "background": "background",
+        "ratio": 9.74,
+        "purpose": "Instructions"
+      },
+      {
+        "foreground": "muted",
+        "background": "panel",
+        "ratio": 8.47,
+        "purpose": "Placeholder and disabled text"
+      },
+      {
+        "foreground": "background",
+        "background": "accent",
+        "ratio": 7.1,
+        "purpose": "Primary text"
+      },
+      {
+        "foreground": "background",
+        "background": "cyan",
+        "ratio": 12.68,
+        "purpose": "Primary active text"
+      },
+      {
+        "foreground": "cyan",
+        "background": "selected",
+        "ratio": 8.15,
+        "purpose": "Secondary active text"
+      },
+      {
+        "foreground": "orange",
+        "background": "background",
+        "ratio": 10.07,
+        "purpose": "Error text"
+      },
+      {
+        "foreground": "line",
+        "background": "panel",
+        "ratio": 3.5,
+        "purpose": "Resting control outline against face"
+      },
+      {
+        "foreground": "line",
+        "background": "background",
+        "ratio": 4.02,
+        "purpose": "Resting control outline against canvas"
+      },
+      {
+        "foreground": "cyan",
+        "background": "panel",
+        "ratio": 11.02,
+        "purpose": "Readout outline"
+      },
+      {
+        "foreground": "qr-ink",
+        "background": "qr-paper",
+        "ratio": 21,
+        "purpose": "Enrollment QR"
+      }
+    ],
+    "evidence": {
+      "screenshots": [
+        "artifacts/wifi.png",
+        "artifacts/password.png",
+        "artifacts/symbols.png",
+        "artifacts/joining.png",
+        "artifacts/failed-join.png",
+        "artifacts/open-failed.png",
+        "artifacts/status.png",
+        "artifacts/status-renamed.png",
+        "artifacts/status-no-name.png",
+        "artifacts/status-long-name.png",
+        "artifacts/status-no-qr.png",
+        "artifacts/status-error.png",
+        "artifacts/status-offline.png",
+        "artifacts/enrollment.png"
+      ],
+      "type": "Actual native Tk renders with synthetic data",
+      "verified": "Fourteen native captures pass widget bounds at 480 × 320 and buttons at least 42 px high; exact management and enrollment QR payloads decoded from captured pixels; status name/IP fallback, missing QR library, error and unenrolled states checked without clipping; documented text contrast at least 4.5:1 and resting control outlines at least 3:1.",
+      "pending": "Physical Pi touchscreen interaction, display readability and phone-camera QR scanning."
+    }
+  },
+  "components": [
+    {
+      "name": "Primary action",
+      "kind": "button",
+      "refersTo": "button-primary",
+      "description": "Magenta enabled action, dark text, cyan native active state. HTML/CSS is a design-panel visual translation; native Tk behavior is authoritative.",
+      "html": "<button class=\"ds-primary\" type=\"button\">Connect</button>",
+      "css": ".ds-primary { width: 256px; height: 42px; background: #FF64C8; color: #0D1021; font: 400 18px \"DejaVu Sans\", sans-serif; border: 0; border-radius: 0; padding: 0; outline: 1px solid #FF64C8; outline-offset: -1px; } .ds-primary:hover:not(:disabled), .ds-primary:active:not(:disabled) { background: #54E7F4; color: #0D1021; } .ds-primary:focus-visible { outline-color: #54E7F4; } .ds-primary:disabled { background: #191E36; color: #ADBBD5; outline-color: #647496; }"
+    },
+    {
+      "name": "Secondary action",
+      "kind": "button",
+      "refersTo": "button-secondary",
+      "description": "Raised indigo secondary action; selected indigo and cyan when active. HTML/CSS is a design-panel visual translation; native Tk behavior is authoritative.",
+      "html": "<button class=\"ds-secondary\" type=\"button\">Cancel</button>",
+      "css": ".ds-secondary { width: 180px; height: 42px; background: #191E36; color: #EDF4FF; font: 400 18px \"DejaVu Sans\", sans-serif; border: 0; border-radius: 0; padding: 0; outline: 1px solid #647496; outline-offset: -1px; } .ds-secondary:hover:not(:disabled), .ds-secondary:active:not(:disabled) { background: #2A3553; color: #54E7F4; } .ds-secondary:focus-visible { outline-color: #54E7F4; } .ds-secondary:disabled { background: #191E36; color: #ADBBD5; outline-color: #647496; }"
+    },
+    {
+      "name": "Disabled action",
+      "kind": "button",
+      "refersTo": "button-disabled",
+      "description": "Primary and secondary disabled actions share panel, muted text and steel outline; not focusable. HTML/CSS is a design-panel visual translation; native Tk behavior is authoritative.",
+      "html": "<button class=\"ds-disabled\" type=\"button\" disabled>Start sign-in</button>",
+      "css": ".ds-disabled { width: 256px; height: 42px; background: #FF64C8; color: #0D1021; font: 400 18px \"DejaVu Sans\", sans-serif; border: 0; border-radius: 0; padding: 0; outline: 1px solid #FF64C8; outline-offset: -1px; } .ds-disabled:hover:not(:disabled), .ds-disabled:active:not(:disabled) { background: #54E7F4; color: #0D1021; } .ds-disabled:focus-visible { outline-color: #54E7F4; } .ds-disabled:disabled { background: #191E36; color: #ADBBD5; outline-color: #647496; }"
+    },
+    {
+      "name": "Network row",
+      "kind": "button",
+      "refersTo": "network-row",
+      "description": "Full-width network selection with signal strength; at most three rows per page. HTML/CSS is a design-panel visual translation; native Tk behavior is authoritative.",
+      "html": "<button class=\"ds-network\" type=\"button\">Workshop Wi-Fi · 92%</button>",
+      "css": ".ds-network { width: 448px; height: 48px; background: #191E36; color: #EDF4FF; font: 400 18px \"DejaVu Sans\", sans-serif; border: 0; border-radius: 0; padding: 0; outline: 1px solid #647496; outline-offset: -1px; } .ds-network:hover:not(:disabled), .ds-network:active:not(:disabled) { background: #2A3553; color: #54E7F4; } .ds-network:focus-visible { outline-color: #54E7F4; } .ds-network:disabled { background: #191E36; color: #ADBBD5; outline-color: #647496; }"
+    },
+    {
+      "name": "Character key",
+      "kind": "button",
+      "refersTo": "keyboard-key",
+      "description": "Character key on a 46 px horizontal pitch and 43 px vertical pitch. HTML/CSS is a design-panel visual translation; native Tk behavior is authoritative.",
+      "html": "<button class=\"ds-key\" type=\"button\">q</button>",
+      "css": ".ds-key { width: 43px; height: 42px; background: #191E36; color: #EDF4FF; font: 400 19px \"DejaVu Sans\", sans-serif; border: 0; border-radius: 0; padding: 0; outline: 1px solid #647496; outline-offset: -1px; } .ds-key:hover:not(:disabled), .ds-key:active:not(:disabled) { background: #2A3553; color: #54E7F4; } .ds-key:focus-visible { outline-color: #54E7F4; } .ds-key:disabled { background: #191E36; color: #ADBBD5; outline-color: #647496; }"
+    },
+    {
+      "name": "Screen navigation",
+      "kind": "nav",
+      "refersTo": "button-secondary",
+      "description": "Upper-right navigation between network list and status; no persistent navigation bar. HTML/CSS is a design-panel visual translation; native Tk behavior is authoritative.",
+      "html": "<button class=\"ds-navigation\" type=\"button\">Status</button>",
+      "css": ".ds-navigation { width: 104px; height: 42px; background: #191E36; color: #EDF4FF; font: 400 18px \"DejaVu Sans\", sans-serif; border: 0; border-radius: 0; padding: 0; outline: 1px solid #647496; outline-offset: -1px; } .ds-navigation:hover:not(:disabled), .ds-navigation:active:not(:disabled) { background: #2A3553; color: #54E7F4; } .ds-navigation:focus-visible { outline-color: #54E7F4; } .ds-navigation:disabled { background: #191E36; color: #ADBBD5; outline-color: #647496; }"
+    },
+    {
+      "name": "Password readout",
+      "kind": "custom",
+      "refersTo": "password-readout",
+      "description": "Masked 354 × 38 px Tk label with persistent cyan outline and 6 px horizontal inset. Touch keyboard and physical keys update app state; no native Entry, caret or selection is implied. HTML/CSS is only a visual preview.",
+      "html": "<div class=\"ds-password\" aria-label=\"Masked Wi-Fi password\">••••••••••••</div>",
+      "css": ".ds-password { width: 342px; height: 38px; display: flex; align-items: center; background: #191E36; color: #EDF4FF; font: 400 18px \"DejaVu Sans\", sans-serif; outline: 1px solid #54E7F4; outline-offset: -1px; border: 0; border-radius: 0; padding: 0 6px; overflow: hidden; white-space: nowrap; }"
+    },
+    {
+      "name": "Console rail",
+      "kind": "custom",
+      "refersTo": "console-rail",
+      "description": "Static 480 × 2 px lower edge at y=318. Three adjacent native frames use widths 240, 160 and 80 px; it is not a touch control.",
+      "html": "<div class=\"ds-rail\" aria-hidden=\"true\"><span class=\"ds-rail-cyan\"></span><span class=\"ds-rail-magenta\"></span><span class=\"ds-rail-orange\"></span></div>",
+      "css": ".ds-rail { display: flex; width: 480px; height: 2px; } .ds-rail-cyan { width: 240px; background: #54E7F4; } .ds-rail-magenta { width: 160px; background: #FF64C8; } .ds-rail-orange { width: 80px; background: #FFAB57; }"
+    }
+  ],
+  "narrative": {
+    "northStar": "The neon setup console",
+    "overview": "TailBridge is a dedicated appliance interface for choosing Wi-Fi, entering a\npassword, checking a connection and enrolling the Pi in Tailscale. The approved\ndefault is a dark retro 1980s/1990s futuristic cyberpunk console: near-black\nindigo, raised indigo control faces and precise magenta, cyan and orange accents.\nThe fixed landscape surface gives each task one screen and keeps its next action\nin a predictable place. The character comes from color, monospaced headings and\na thin three-color lower edge; all presentation stays static.\n\nThis document records the finished native Tk implementation in `tailbridge/ui.py`.\nThe target is the user's Raspberry Pi 4 with Raspberry Pi OS Trixie 64-bit and a\nSunFounder 480 × 320 display. Large touch controls, clear feedback and credential\nprivacy govern the visual choices. This design system covers the local\napp-only touchscreen; ts-redir's browser interface is outside its scope.",
+    "keyCharacteristics": [
+      "Fixed 480 × 320 composition with explicit on-screen keyboard layouts.",
+      "Dark indigo layers, magenta primary actions, cyan headings and orange errors.",
+      "Square, flat controls with large readable labels and visible outlines.",
+      "Three network rows per page and predictable bottom actions.",
+      "A static two-pixel cyan, magenta and orange console rail.",
+      "Credential disclosure and connection feedback built into the task flow."
+    ],
+    "rules": [
+      {
+        "name": "The Neon Roles Rule",
+        "body": "Keep magenta for enabled primary actions, cyan for\nheadings and interaction cues, and orange for textual errors; the small console\nrail is the shared three-color signature.",
+        "section": "colors"
+      },
+      {
+        "name": "The Static Console Rule",
+        "body": "Express the retro theme through the established\npalette, typography and fixed rail; preserve immediate state changes and the\nuntextured canvas.",
+        "section": "elevation"
+      }
+    ],
+    "dos": [
+      "Do preserve the fixed 480 × 320 composition and test every changed state at that size.",
+      "Do use cyan 24 px bold DejaVu Sans Mono for standard headings and 18 px DejaVu Sans for credential headers.",
+      "Do keep magenta primary actions legible with dark text, and switch disabled actions to panel and muted colors.",
+      "Do retain 48 px network rows, 42 px action heights and 43 × 42 px character keys.",
+      "Do preserve the two-pixel rail at y=318 and the black-on-white QR with its four-module quiet border.",
+      "Do keep errors textual, preserve full network identity and clear password disclosure on navigation.",
+      "Do keep the touchscreen app-only and preserve authenticated administration and SSH recovery.",
+      "Do validate touch accuracy and readability on the actual SunFounder display before making hardware usability claims."
+    ],
+    "donts": [
+      "Don't add decorative animation, glow, scanlines, shadows or desktop-style chrome to this appliance flow.",
+      "Don't let status refresh interrupt credential entry or reset network pagination.",
+      "Don't expose passwords by default or omit numeric and symbol keyboard pages.",
+      "Don't recolor the QR to match the neon palette or cover its quiet border.",
+      "Don't treat desktop captures, demo data or browser component previews as physical Pi validation.",
+      "Don't apply this touchscreen system as an unsolicited redesign of ts-redir's browser interface."
+    ]
+  }
+}

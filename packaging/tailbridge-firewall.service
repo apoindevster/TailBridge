@@ -1,0 +1,12 @@
+[Unit]
+Description=TailBridge forwarding scope guard
+Before=tailbridge-redir.service
+
+[Service]
+Type=oneshot
+ExecStart=/opt/tailbridge/scripts/load-firewall.sh
+RemainAfterExit=yes
+# Deliberately leave the guard in place on stop; recovery removes it explicitly.
+
+[Install]
+WantedBy=multi-user.target

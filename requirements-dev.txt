@@ -1,0 +1,4 @@
+# Screenshot generation/decoding only; the Pi uses distribution packages.
+qrcode==8.2
+pillow==13.0.0
+zxing-cpp==3.1.1

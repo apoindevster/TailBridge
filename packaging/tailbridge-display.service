@@ -1,0 +1,29 @@
+[Unit]
+Description=TailBridge touchscreen Wi-Fi setup
+Wants=tailbridge-network.service
+After=systemd-user-sessions.service tailbridge-network.service
+Conflicts=getty@tty1.service display-manager.service
+StartLimitIntervalSec=0
+
+[Service]
+Type=simple
+User=root
+Group=tailbridge
+RuntimeDirectory=tailbridge-display
+RuntimeDirectoryMode=0750
+Environment=PYTHONPATH=/opt/tailbridge
+EnvironmentFile=-/etc/tailbridge/environment
+ExecStartPre=/usr/sbin/sysctl -q -w kernel.sysrq=0
+ExecStart=/opt/tailbridge/scripts/start-display.sh
+Restart=always
+RestartSec=5
+StandardInput=tty
+TTYPath=/dev/tty1
+TTYReset=yes
+TTYVHangup=yes
+TTYVTDisallocate=yes
+UMask=0077
+LimitCORE=0
+
+[Install]
+WantedBy=multi-user.target

@@ -1,0 +1,28 @@
+[Unit]
+Description=TailBridge local Wi-Fi configuration broker
+Wants=NetworkManager.service tailscaled.service
+After=NetworkManager.service tailscaled.service
+
+[Service]
+Type=simple
+User=root
+Group=tailbridge
+RuntimeDirectory=tailbridge
+RuntimeDirectoryMode=0750
+Environment=PYTHONPATH=/opt/tailbridge
+EnvironmentFile=-/etc/tailbridge/environment
+ExecStart=/usr/bin/python3 -m tailbridge.broker --interface ${WIFI_INTERFACE}
+Restart=on-failure
+RestartSec=3
+UMask=0077
+LimitCORE=0
+NoNewPrivileges=yes
+ProtectSystem=strict
+ProtectHome=yes
+PrivateTmp=yes
+ProtectKernelTunables=yes
+ProtectControlGroups=yes
+RestrictAddressFamilies=AF_UNIX
+
+[Install]
+WantedBy=multi-user.target

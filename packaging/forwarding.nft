@@ -1,0 +1,18 @@
+# Additive guard for this dedicated appliance. Does not flush any other table.
+table inet tailbridge_guard {
+    chain input {
+        type filter hook input priority -10; policy accept;
+        tcp dport 8800 iifname != "tailscale0" drop
+    }
+    chain forward {
+        type filter hook forward priority -10; policy drop;
+        ct state invalid drop
+        # Only explicit ts-redir DNAT flows may leave the LAN into the tailnet.
+        iifname { "wlan0", "eth0" } oifname "tailscale0" ip daddr 100.64.0.0/10 ct status dnat accept
+        iifname "tailscale0" oifname { "wlan0", "eth0" } ct state established,related ct status dnat accept
+    }
+    chain output {
+        type filter hook output priority 10; policy accept;
+        ct status dnat ip daddr 100.64.0.0/10 oifname != "tailscale0" drop
+    }
+}

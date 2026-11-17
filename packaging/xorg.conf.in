@@ -1,0 +1,34 @@
+Section "ServerLayout"
+    Identifier "TailBridge"
+    Screen 0 "Touchscreen"
+    Option "BlankTime" "0"
+    Option "StandbyTime" "0"
+    Option "SuspendTime" "0"
+    Option "OffTime" "0"
+EndSection
+
+Section "ServerFlags"
+    Option "DontVTSwitch" "true"
+    Option "DontZap" "true"
+    Option "AutoAddGPU" "false"
+EndSection
+
+Section "Device"
+    Identifier "SunFounder"
+    Driver "fbdev"
+    Option "fbdev" "@FRAMEBUFFER@"
+EndSection
+
+Section "Screen"
+    Identifier "Touchscreen"
+    Device "SunFounder"
+EndSection
+
+Section "InputClass"
+    Identifier "SunFounder XPT2046 landscape"
+    MatchProduct "ADS7846 Touchscreen"
+    MatchDevicePath "/dev/input/event*"
+    Driver "evdev"
+    Option "Calibration" "3936 227 3880 268"
+    Option "SwapAxes" "1"
+EndSection
