@@ -1,5 +1,27 @@
 # Results
 
+## GitHub CI idle-time regression — 2026-11-17
+
+The first hosted build passed publication/workflow checks but failed the native
+UI smoke test's hidden Wi-Fi input timeout assertion. The test assigned zero to
+the last-touch timestamp, assuming the monotonic clock had already passed 120
+seconds. A simulated clock starting at 10 seconds reproduced the exact failing
+assertion on the host; the failed runner's clock origin was not recorded.
+
+The smoke test now sets expiry timestamps relative to the current UI clock. It
+uses a fresh clock origin by default and checks that newly entered Wi-Fi/PIN
+input remains present before simulating expiry. Only the UI clock is replaced;
+test deadlines and worker waits retain real time. Application timeouts, PIN
+throttling, recovery and networking behavior are unchanged.
+
+Both the 10-second and 1,000,000-second origins passed all 20 synthetic native
+captures, including decoding each QR payload, on the host and under Xvfb in a
+clean Ubuntu 24.04 container. The complete workflow rehearsal also passed all
+53 Python tests, Go race tests, Linux arm64 packaging, workflow lint, publication
+boundaries, archive checksum verification and source/history/release secret
+scans. These are host tests; no Pi installation, physical test or traffic
+benchmark was performed for this fix.
+
 ## PIN/Home package uploaded for installation — 2026-11-17
 
 Rebuilt the current package with the distribution Python and the previously
